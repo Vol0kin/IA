@@ -1,0 +1,4 @@
+acido
+semiacido
+neutro
+dulce

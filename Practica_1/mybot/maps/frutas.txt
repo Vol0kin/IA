@@ -1,0 +1,16 @@
+fresa: rojo roja pequeno pequena semiacido semiacida b c
+manzana: amarillo amarilla rojo roja verde mediano mediana semiacido semiacida b c
+naranja: naranja mediano mediana acido acida b c
+kiwi: verde amarillo amarilla pequeno pequena acido acida c
+mandarina: naranja pequeno pequena acido acida a
+pina: amarillo amarilla verde grande acido acida b c
+mango: verde grande semiacido semiacida a b c
+melocoton: amarillo amarilla naranja mediano mediana semiacido semiacida a b
+higo: verde morado morada pequeno pequena dulce b c
+ciruela: amarillo amarilla morado morada pequeno pequena dulce a b c
+pera: verde amarillo amarilla mediano mediana dulce b c
+platano: amarillo amarilla mediano mediana dulce b c
+coco: marron grande neutro neutra b c
+aguacate: verde mediano mediana neutro neutra b c
+nuez: marron pequeno pequena neutro neutra b
+cereza: rojo pequeno pequena semiacido semiacida a c

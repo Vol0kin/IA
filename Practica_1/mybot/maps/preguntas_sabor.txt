@@ -1,0 +1,4 @@
+acido: La fruta es de sabor acido?
+semiacido: La fruta es de sabor semiacido?
+neutro: La fruta es de sabor neutro?
+dulce: La fruta es de sabor dulce?

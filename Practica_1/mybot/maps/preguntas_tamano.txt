@@ -1,0 +1,3 @@
+pequeno: La fruta es de tamaño pequeño?
+mediano: La fruta es de tamaño mediano?
+grande: La fruta es de tamaño grande?

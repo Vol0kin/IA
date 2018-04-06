@@ -1,0 +1,6 @@
+amarillo: Es la fruta de color amarillo?
+rojo: Es la fruta de color rojo?
+morado: Es la fruta de color morado?
+verde: Es la fruta de color verde?
+naranja: Es la fruta de color naranja?
+marron: Es la fruta de color marron?

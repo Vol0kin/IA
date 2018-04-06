@@ -1,0 +1,1009 @@
+<?xml version="1.0"
+encoding="UTF-8"?>
+<aiml version="2.0">
+
+	<!-- Nivel 3 -->
+	<category>
+		<pattern>^ adivi+ ^</pattern>
+		<template>
+			<think>
+				<!-- Lista de frutas -->
+				<set name="lista_frutas">
+					<readset>frutas</readset>
+				</set>
+
+				<!-- Caracteristicas de las frutas-->
+				<set name="caracteristicas"></set>
+				<set name="caracteristicas_falsas"></set>
+
+				<!-- Atributos de las frutas-->
+				<set name="colores">
+					<readset>color_frutas</readset>
+				</set>
+				<set name="tamanos">
+					<readset>tamano_fruta</readset>
+				</set>
+				<set name="sabores">
+					<readset>sabor_fruta</readset>
+				</set>
+				<set name="vitaminas">
+					<readset>vitaminas</readset>
+				</set>
+
+				<!-- Categorias de preguntas -->
+				<set name="categorias">
+					<readset>categorias</readset>
+				</set>
+				<set name="tam_categorias">
+					<srai>
+						COUNT <get name="categorias"/>
+					</srai>
+				</set>
+				
+				<set name="pregunta">
+					<srai> ELEGIR PREGUNTA </srai>
+				</set>
+
+				<set name="topic">adivinar_agente</set>
+			</think>
+			Muy bien, empecemos. <get name="pregunta"/>
+			Frutas restantes: <get name="lista_frutas"/>			
+		</template>
+	</category>
+
+	<topic name="adivinar_agente">
+		<category>
+			<pattern>SI</pattern>
+			<template>
+				<think>
+					<!-- Se añade a las caracteristicas de la fruta deducida -->
+					<set name="caracteristicas">
+						<get name="caracteristicas"/> <get name="atributo_pregunta"/>
+					</set>
+
+					<!-- Se añade a las caracteristicas de la categoria que se pregunta -->
+					<condition name="categoria_actual">
+						<li value="tamano">
+							<set name="categorias">
+								<srai>
+									REMOVEITEM <get name="num_categoria"/> IN <get name="categorias"/>
+								</srai>
+							</set>
+						</li>
+
+						<li value="sabor">
+							<set name="categorias">
+								<srai>
+									REMOVEITEM <get name="num_categoria"/> IN <get name="categorias"/>
+								</srai>
+							</set>
+						</li>
+					</condition>
+
+					<!-- Actualizar el tamaño de las categorias en caso de que se hayan visto modificadas -->
+					<set name="tam_categorias">
+						<srai>
+							COUNT <get name="categorias"/>
+						</srai>
+					</set>
+
+					<!-- Eliminar las frutas que no contienen el atributo en cuestión -->
+					<set var="lista_frutas_correctas"></set>
+
+					<set var="item">
+						<srai> ITERATE <get name="lista_frutas"/> </srai>
+					</set>
+
+					<condition var="item">
+						<li value="end"></li>
+						<li>
+							<set var="fruta_atributos">
+								<map name="frutas">
+									<get var="item"/>
+								</map>
+							</set>
+
+							<set var="existe">
+								<srai>
+									FINDITEM <get name="atributo_pregunta"/> IN <get var="fruta_atributos"/>
+								</srai>
+							</set>
+
+							<condition var="existe">
+								<li value="0"></li>
+								<li>
+									<set var="lista_frutas_correctas">
+										<get var="lista_frutas_correctas"/> <get var="item"/>
+									</set>
+								</li>
+							</condition>
+
+							<set var="item">
+								<srai>NEXT</srai>
+							</set>
+							<loop/>
+						</li>
+					</condition>
+
+					<set name="lista_frutas"><get var="lista_frutas_correctas"/></set>
+
+					<!-- Contar el numero de frutas que quedan restantes -->
+					<set var="numero_frutas">
+						<srai> COUNT <get name="lista_frutas"/> </srai>
+					</set>
+
+					<condition var="numero_frutas">
+						<li value="1">
+							<!-- Si queda solo una fruta se pregunta si es esa la fruta -->
+							<set name="pregunta">La fruta en la que estabas pensando es <get name="lista_frutas"/></set>
+						</li>
+						<li>
+							<!-- Obtener resto de atributos existentes -->
+							<set var="colores_restantes">z</set>
+							<set var="tamanos_restantes">z</set>
+							<set var="sabores_restantes">z</set>
+							<set var="vitaminas_restantes">z</set>
+
+							<set var="item">
+								<srai> ITERATE <get name="lista_frutas"/> </srai>
+							</set>
+
+							<!-- Sacar todas las caracteristicas de las frutas restantes -->
+							<set var="carac_frutas"></set>
+
+							<condition var="item">
+								<li value="end"></li>
+								<li>
+									<set var="carac_frutas">
+										<get var="carac_frutas"/> <map name="frutas"><get var="item"/></map>
+									</set>
+
+									<set var="item">
+										<srai>NEXT</srai>
+									</set>
+									<loop/>
+								</li>
+							</condition>
+
+							<!-- Sacar los colores restantes -->
+							<set var="item">
+								<srai> ITERATE <get name="colores"/> </srai>
+							</set>
+							<condition var="item">
+								<li value="end"></li>
+								<li>
+									<set var="existe">
+										<srai>
+											FINDITEM <get var="item"/> IN <get var="carac_frutas"/>
+										</srai>
+									</set>
+
+									<condition var="existe">
+										<li value="0"></li>
+										<li>
+											<set var="colores_restantes">
+												<srai> ANIADEINI <get var="item"/> IN <get var="colores_restantes"/> </srai>
+											</set>
+										</li>
+									</condition>
+
+									<set var="item">
+										<srai>NEXT</srai>
+									</set>
+									<loop/>
+								</li>
+							</condition>
+
+							<!-- Sacar los tamaños restantes -->
+							<set var="item">
+								<srai> ITERATE <get name="tamanos"/> </srai>
+							</set>
+							<condition var="item">
+								<li value="end"></li>
+								<li>
+									<set var="existe">
+										<srai>
+											FINDITEM <get var="item"/> IN <get var="carac_frutas"/>
+										</srai>
+									</set>
+
+									<condition var="existe">
+										<li value="0"></li>
+										<li>
+											<set var="tamanos_restantes">
+												<srai> ANIADEINI <get var="item"/> IN <get var="tamanos_restantes"/> </srai>
+											</set>
+										</li>
+									</condition>
+									
+									<set var="item">
+										<srai>NEXT</srai>
+									</set>
+									<loop/>
+								</li>
+							</condition>
+
+							<!-- Sacar los sabores restantes -->
+							<set var="item">
+								<srai> ITERATE <get name="sabores"/> </srai>
+							</set>
+							<condition var="item">
+								<li value="end"></li>
+								<li>
+									<set var="existe">
+										<srai>
+											FINDITEM <get var="item"/> IN <get var="carac_frutas"/>
+										</srai>
+									</set>
+
+									<condition var="existe">
+										<li value="0"></li>
+										<li>
+											<set var="sabores_restantes">
+												<srai> ANIADEINI <get var="item"/> IN <get var="sabores_restantes"/> </srai>
+											</set>
+										</li>
+									</condition>
+									
+									<set var="item">
+										<srai>NEXT</srai>
+									</set>
+									<loop/>
+								</li>
+							</condition>
+
+							<!-- Sacar las vitaminas restantes -->
+							<set var="item">
+								<srai> ITERATE <get name="vitaminas"/> </srai>
+							</set>
+							<condition var="item">
+								<li value="end"></li>
+								<li>
+									<set var="existe">
+										<srai>
+											FINDITEM <get var="item"/> IN <get var="carac_frutas"/>
+										</srai>
+									</set>
+
+									<condition var="existe">
+										<li value="0"></li>
+										<li>
+											<set var="vitaminas_restantes">
+												<srai> ANIADEINI <get var="item"/> IN <get var="vitaminas_restantes"/> </srai>
+											</set>
+										</li>
+									</condition>
+									
+									<set var="item">
+										<srai>NEXT</srai>
+									</set>
+									<loop/>
+								</li>
+							</condition>						
+
+							<set var="colores_restantes">
+								<srai>REMAIN <get var="colores_restantes"/></srai>
+							</set>
+							<set var="tamanos_restantes">
+								<srai>REMAIN <get var="tamanos_restantes"/></srai>
+							</set>
+							<set var="sabores_restantes">
+								<srai>REMAIN <get var="sabores_restantes"/></srai>
+							</set>
+							<set var="vitaminas_restantes">
+								<srai>REMAIN <get var="vitaminas_restantes"/></srai>
+							</set>
+
+							<set name="colores">
+								<get var="colores_restantes"/>
+							</set>
+							<set name="tamanos">
+								<get var="tamanos_restantes"/>
+							</set>
+							<set name="sabores">
+								<get var="sabores_restantes"/>
+							</set>
+							<set name="vitaminas">
+								<get var="vitaminas_restantes"/>
+							</set>
+
+							<!-- Eliminar la característica que se acaba de preguntar de la lista -->
+							<condition name="categoria_actual">
+								<li value="color">
+									<set var="posicion">
+										<srai>
+											FINDITEM <get name="atributo_pregunta"/> IN <get name="colores"/>
+										</srai>
+									</set>
+
+									<set name="colores">
+										<srai>
+											REMOVEITEM <get var="posicion"/> IN <get name="colores"/>
+										</srai>
+									</set>
+								</li>
+
+								<li value="tamano">
+									<set var="posicion">
+										<srai>
+											FINDITEM <get name="atributo_pregunta"/> IN <get name="tamanos"/>
+										</srai>
+									</set>
+
+									<set name="tamanos">
+										<srai>
+											REMOVEITEM <get var="posicion"/> IN <get name="tamanos"/>
+										</srai>
+									</set>
+								</li>
+
+								<li value="sabor">
+									<set var="posicion">
+										<srai>
+											FINDITEM <get name="atributo_pregunta"/> IN <get name="sabores"/>
+										</srai>
+									</set>
+
+									<set name="sabores">
+										<srai>
+											REMOVEITEM <get var="posicion"/> IN <get name="sabores"/>
+										</srai>
+									</set>
+								</li>
+
+								<li value="vitaminas">
+									<set var="posicion">
+										<srai>
+											FINDITEM <get name="atributo_pregunta"/> IN <get name="vitaminas"/>
+										</srai>
+									</set>
+
+									<set name="vitaminas">
+										<srai>
+											REMOVEITEM <get var="posicion"/> IN <get name="vitaminas"/>
+										</srai>
+									</set>
+								</li>
+							</condition>
+
+							<set name="categorias">
+								<srai> ELIMINAR CATEGORIAS VACIAS </srai>
+							</set>
+
+							<!-- Elección de pregunta -->
+							<!-- Se elige aquella pregunta que al menos descarte una fruta, es decir, que la caracterisitca que se pregunte no este
+									en al menos una de las frutas -->
+							<!-- buena_pregunta: 1 si la pregunta es mala, 2 si la pregunta es buena -->
+							<!-- Se mete en un bucle hasta que se encuentre la pregunta buena -->
+							<set name="pregunta">
+								<srai> ELEGIR BUENA PREGUNTA </srai>
+							</set>
+						</li>
+					</condition>
+				</think>
+				<get name="pregunta"/>
+				Frutas restantes: <get name="lista_frutas"/>
+			</template>
+		</category>
+
+		<category>
+			<pattern>NO</pattern>
+			<template>
+				<think>
+					<!-- Se añade a las caracteristicas que no pertenecen a la fruta deducida -->
+					<set name="caracteristicas_falsas">
+						<get name="caracteristicas_falsas"/> <get name="atributo_pregunta"/>
+					</set>
+					
+					<!-- Actualizar el tamaño de las categorias en caso de que se hayan visto modificadas -->
+					<set name="tam_categorias">
+						<srai>
+							COUNT <get name="categorias"/>
+						</srai>
+					</set>
+
+					<!-- Eliminar las frutas que contienen el atributo en cuestión -->
+					<set var="lista_frutas_correctas"></set>
+
+					<set var="item">
+						<srai> ITERATE <get name="lista_frutas"/> </srai>
+					</set>
+
+					<condition var="item">
+						<li value="end"></li>
+						<li>
+							<set var="fruta_atributos">
+								<map name="frutas">
+									<get var="item"/>
+								</map>
+							</set>
+
+							<set var="existe">
+								<srai>
+									FINDITEM <get name="atributo_pregunta"/> IN <get var="fruta_atributos"/>
+								</srai>
+							</set>
+
+							<condition var="existe">
+								<li value="0">
+									<set var="lista_frutas_correctas">
+										<get var="lista_frutas_correctas"/> <get var="item"/>
+									</set>
+								</li>
+							</condition>
+
+							<set var="item">
+								<srai>NEXT</srai>
+							</set>
+							<loop/>
+						</li>
+					</condition>
+
+					<set name="lista_frutas"><get var="lista_frutas_correctas"/></set>
+
+					<!-- Obtener el numero de frutas -->
+					<set var="numero_frutas">
+						<srai> COUNT <get name="lista_frutas"/> </srai>
+					</set>
+
+					<condition var="numero_frutas">
+						<li value="1">
+							<!-- Si solo queda una fruta se pregunta si es esta-->
+							<set name="pregunta">La fruta en la que estabas pensando es <get name="lista_frutas"/></set>
+						</li>
+						<li>
+							<!-- Obtener resto de atributos existentes -->
+							<set var="colores_restantes">z</set>
+							<set var="tamanos_restantes">z</set>
+							<set var="sabores_restantes">z</set>
+							<set var="vitaminas_restantes">z</set>
+
+							<!-- Obtener las caracterisitcas de las frutas restantes -->
+							<set var="item">
+								<srai> ITERATE <get name="lista_frutas"/> </srai>
+							</set>
+
+							<set var="carac_frutas"></set>
+
+							<condition var="item">
+								<li value="end"></li>
+								<li>
+									<set var="carac_frutas">
+										<get var="carac_frutas"/> <map name="frutas"><get var="item"/></map>
+									</set>
+
+									<set var="item">
+										<srai>NEXT</srai>
+									</set>
+									<loop/>
+								</li>
+							</condition>
+
+							<!-- Buscar los colores restantes -->
+							<set var="item">
+								<srai> ITERATE <get name="colores"/> </srai>
+							</set>
+							<condition var="item">
+								<li value="end"></li>
+								<li>
+									<set var="existe">
+										<srai>
+											FINDITEM <get var="item"/> IN <get var="carac_frutas"/>
+										</srai>
+									</set>
+
+									<condition var="existe">
+										<li value="0"></li>
+										<li>
+											<set var="colores_restantes">
+												<srai> ANIADEINI <get var="item"/> IN <get var="colores_restantes"/> </srai>
+											</set>
+										</li>
+									</condition>
+
+									<set var="item">
+										<srai>NEXT</srai>
+									</set>
+									<loop/>
+								</li>
+							</condition>
+
+							<!-- Buscar los tamaños restantes -->
+							<set var="item">
+								<srai> ITERATE <get name="tamanos"/> </srai>
+							</set>
+							<condition var="item">
+								<li value="end"></li>
+								<li>
+									<set var="existe">
+										<srai>
+											FINDITEM <get var="item"/> IN <get var="carac_frutas"/>
+										</srai>
+									</set>
+
+									<condition var="existe">
+										<li value="0"></li>
+										<li>
+											<set var="tamanos_restantes">
+												<srai> ANIADEINI <get var="item"/> IN <get var="tamanos_restantes"/> </srai>
+											</set>
+										</li>
+									</condition>
+									
+									<set var="item">
+										<srai>NEXT</srai>
+									</set>
+									<loop/>
+								</li>
+							</condition>
+
+							<!-- Buscar los sabores restantes -->
+							<set var="item">
+								<srai> ITERATE <get name="sabores"/> </srai>
+							</set>
+							<condition var="item">
+								<li value="end"></li>
+								<li>
+									<set var="existe">
+										<srai>
+											FINDITEM <get var="item"/> IN <get var="carac_frutas"/>
+										</srai>
+									</set>
+
+									<condition var="existe">
+										<li value="0"></li>
+										<li>
+											<set var="sabores_restantes">
+												<srai> ANIADEINI <get var="item"/> IN <get var="sabores_restantes"/> </srai>
+											</set>
+										</li>
+									</condition>
+									
+									<set var="item">
+										<srai>NEXT</srai>
+									</set>
+									<loop/>
+								</li>
+							</condition>
+
+							<!-- Buscar las vitaminas restantes -->
+							<set var="item">
+								<srai> ITERATE <get name="vitaminas"/> </srai>
+							</set>
+							<condition var="item">
+								<li value="end"></li>
+								<li>
+									<set var="existe">
+										<srai>
+											FINDITEM <get var="item"/> IN <get var="carac_frutas"/>
+										</srai>
+									</set>
+
+									<condition var="existe">
+										<li value="0"></li>
+										<li>
+											<set var="vitaminas_restantes">
+												<srai> ANIADEINI <get var="item"/> IN <get var="vitaminas_restantes"/> </srai>
+											</set>
+										</li>
+									</condition>
+									
+									<set var="item">
+										<srai>NEXT</srai>
+									</set>
+									<loop/>
+								</li>
+							</condition>						
+
+							<set var="colores_restantes">
+								<srai>REMAIN <get var="colores_restantes"/></srai>
+							</set>
+							<set var="tamanos_restantes">
+								<srai>REMAIN <get var="tamanos_restantes"/></srai>
+							</set>
+							<set var="sabores_restantes">
+								<srai>REMAIN <get var="sabores_restantes"/></srai>
+							</set>
+							<set var="vitaminas_restantes">
+								<srai>REMAIN <get var="vitaminas_restantes"/></srai>
+							</set>
+
+							<set name="colores">
+								<get var="colores_restantes"/>
+							</set>
+							<set name="tamanos">
+								<get var="tamanos_restantes"/>
+							</set>
+							<set name="sabores">
+								<get var="sabores_restantes"/>
+							</set>
+							<set name="vitaminas">
+								<get var="vitaminas_restantes"/>
+							</set>
+
+							<set name="categorias">
+								<srai> ELIMINAR CATEGORIAS VACIAS </srai>
+							</set>							
+
+							<!-- Elección de pregunta -->
+							<!-- Se elige aquella pregunta que al menos descarte una fruta, es decir, que la caracterisitca que se pregunte no este
+									en al menos una de las frutas -->
+							<!-- buena_pregunta: 1 si la pregunta es mala, 2 si la pregunta es buena -->
+							<!-- Se mete en un bucle hasta que se encuentre la pregunta buena -->
+							<set name="pregunta">
+								<srai> ELEGIR BUENA PREGUNTA </srai>
+							</set>
+						</li>
+					</condition>
+				</think>
+				<get name="pregunta"/>
+				Frutas restantes: <get name="lista_frutas"/>
+			</template>
+		</category>
+
+		<!-- Respuesta positiva -->
+		<category>
+			<pattern>SI ESA ES LA FRUTA</pattern>
+			<template>Que bien! He acertado la fruta! :^)</template>
+		</category>
+
+		<!--  Respuesta negativa-->
+		<category>
+			<pattern>NO LA FRUTA ES [EL LA] <set>frutas</set></pattern>
+			<template>
+				<think>
+					<!-- Se obtienen las caracteristicas de la fruta que ha indicado el usuario -->
+					<set var="carac_fruta_respuesta">
+						<map name="frutas"><star/></map>
+					</set>
+
+					<!-- Variable que guarda las caracteristicas con las que se ha engañado -->
+					<set var="engano"></set>
+
+					<!-- Iterar sobre las respuestas positivas del usuario para detectar el engaño -->
+					<set var="item">
+						<srai> ITERATE <get name="caracteristicas"/> </srai>
+					</set>
+
+					<condition var="item">
+						<li value="end"></li>
+						<li>
+							<set var="existe">
+								<srai> FINDITEM <get var="item"/> IN <get var="carac_fruta_respuesta"/> </srai>
+							</set>
+
+							<condition var="existe">
+								<li value="0">
+									<set var="engano">
+										<get var="engano"/> <get var="item"/>
+									</set>
+								</li>
+							</condition>
+
+							<set var="item">
+								<srai>NEXT</srai>
+							</set>
+							<loop/>
+						</li>	
+					</condition>
+
+					<!-- Iterar sobre las respuestas negativas del usuario para detectar el engaño -->
+					<set var="item">
+						<srai> ITERATE <get name="caracteristicas_falsas"/> </srai>
+					</set>
+
+					<condition var="item">
+						<li value="end"></li>
+						<li>
+							<set var="existe">
+								<srai> FINDITEM <get var="item"/> IN <get var="carac_fruta_respuesta"/> </srai>
+							</set>
+
+							<condition var="existe">
+								<li value="0"></li>
+								<li>
+									<set var="engano">
+										<get var="engano"/> <get var="item"/>
+									</set>
+								</li>
+							</condition>
+
+							<set var="item">
+								<srai>NEXT</srai>
+							</set>
+							<loop/>
+						</li>	
+					</condition>
+				</think>
+				ME HAS TIMADO DESGRACIADO ME DIJISTE QUE LA FRUTA ERA <get var="engano"/> Y RESULTA QUE NO ES <get var="engano"/>. A VER SI TE VOY A TENER QUE PARTIR LAS PIERNAS! >: (
+			</template>
+		</category>
+	</topic>
+
+	<!-- FUNCIONALIDADES EXTRA QUE SE HAN NECESITADO PARA REALIZAR EL NIVEL 3 -->
+	<!-- Añade al final de una lista -->
+	<category>
+    <pattern>
+        ANIADEINI * IN *
+    </pattern>
+    <template>
+        <think><set var="set"><star index="2"/></set></think>
+        <think><set var="pos"><srai>FINDITEM <star/> IN <get var="set"/></srai></set></think>
+        <condition var="pos">
+            <li value="0">
+                <think><set var="set"><get var="set"/> <star/></set></think>
+            </li>
+        </condition>
+        <get var="set"/>
+    </template>
+	</category>
+
+	<category>
+		<pattern>
+				ELIMINAR CATEGORIAS VACIAS
+		</pattern>
+		<template>
+			<think>
+				<set var="num_colores">
+					<srai> COUNT <get name="colores"/> </srai>
+				</set>
+				<set var="num_sabores">
+					<srai> COUNT <get name="sabores"/> </srai>
+				</set>
+				<set var="num_tamanos">
+					<srai> COUNT <get name="tamanos"/> </srai>
+				</set>
+				<set var="num_vitaminas">
+					<srai> COUNT <get name="vitaminas"/> </srai>
+				</set>
+
+				<condition var="num_colores">
+					<li value="0">
+						<set var="posicion">
+							<srai> FINDITEM color IN <get name="categorias"/> </srai>
+						</set>
+
+						<condition var="posicion">
+							<li value="0"></li>
+							<li>
+								<set name="categorias">
+									<srai> REMOVEITEM <get var="posicion"/> IN <get name="categorias"/> </srai>
+								</set>
+							</li>
+						</condition>
+					</li>
+				</condition>
+
+				<condition var="num_tamanos">
+					<li value="0">
+						<set var="posicion">
+							<srai> FINDITEM tamano IN <get name="categorias"/> </srai>
+						</set>
+
+						<condition var="posicion">
+							<li value="0"></li>
+							<li>
+								<set name="categorias">
+									<srai> REMOVEITEM <get var="posicion"/> IN <get name="categorias"/> </srai>
+								</set>
+							</li>
+						</condition>
+					</li>
+				</condition>
+
+				<condition var="num_sabores">
+					<li value="0">
+						<set var="posicion">
+							<srai> FINDITEM sabor IN <get name="categorias"/> </srai>
+						</set>
+
+						<condition var="posicion">
+							<li value="0"></li>
+							<li>
+								<set name="categorias">
+									<srai> REMOVEITEM <get var="posicion"/> IN <get name="categorias"/> </srai>
+								</set>
+							</li>
+						</condition>
+					</li>
+				</condition>
+
+				<condition var="num_vitaminas">
+					<li value="0">
+						<set var="posicion">
+							<srai> FINDITEM vitaminas IN <get name="categorias"/> </srai>
+						</set>
+
+						<condition var="posicion">
+							<li value="0"></li>
+							<li>
+								<set name="categorias">
+									<srai> REMOVEITEM <get var="posicion"/> IN <get name="categorias"/> </srai>
+								</set>
+							</li>
+						</condition>
+					</li>
+				</condition>
+
+				<!-- Actualizar el tamaño de las categorias en caso de que se hayan visto modificadas -->
+				<set name="tam_categorias">
+					<srai>
+						COUNT <get name="categorias"/>
+					</srai>
+				</set>
+			</think>
+			<get name="categorias"/>
+		</template>
+	</category>
+
+	<category>
+		<pattern> ELEGIR PREGUNTA </pattern>
+		<template>
+			<think>
+				<set name="num_categoria">
+					<srai>
+						RANDOM <get name="tam_categorias"/>
+					</srai>
+				</set>
+				<set name="categoria_actual">
+					<srai>
+						SELECTITEM <get name="num_categoria"/> IN <get name="categorias"/>
+					</srai>
+				</set>
+				<set name="pregunta"></set>
+
+				<!-- Seleccion de la pregunta -->
+				<!-- categoria_actual: hace referencia a la categoria actual -->
+				<!-- num_atributos : var que indica el numero de atributos que tiene una categoria-->
+				<!-- num_atributo : var que indica el numero de atributo seleccionado dentro de la categoria-->
+				<!-- atributo_pregunta : var aleatoria que indica el atributo sobre el que se va a preguntar-->
+				<!-- pregunta: pregunta que se va a realizar -->
+				<condition name="categoria_actual">
+					<li value="color">
+						<set var="num_atributos">
+							<srai>
+								COUNT <get name="colores"/>
+							</srai>
+						</set>
+						<set name="num_atributo">
+							<srai>
+								RANDOM <get var="num_atributos"/>
+							</srai>
+						</set>
+						<set name="atributo_pregunta">
+							<srai>
+								SELECTITEM <get name="num_atributo"/> IN <get name="colores"/>
+							</srai>
+						</set>
+						<set name="pregunta">
+							<map name="preguntas_color">
+								<get name="atributo_pregunta"/>
+							</map>
+						</set>
+					</li>
+
+					<li value="tamano">
+						<set var="num_atributos">
+							<srai>
+								COUNT <get name="tamanos"/>
+							</srai>
+						</set>
+						<set name="num_atributo">
+							<srai>
+								RANDOM <get var="num_atributos"/>
+							</srai>
+						</set>
+						<set name="atributo_pregunta">
+							<srai>
+								SELECTITEM <get name="num_atributo"/> IN <get name="tamanos"/>
+							</srai>
+						</set>
+						<set name="pregunta">
+							<map name="preguntas_tamano">
+								<get name="atributo_pregunta"/>
+							</map>
+						</set>
+					</li>
+
+					<li value="sabor">
+						<set var="num_atributos">
+							<srai>
+								COUNT <get name="sabores"/>
+							</srai>
+						</set>
+						<set name="num_atributo">
+							<srai>
+								RANDOM <get var="num_atributos"/>
+							</srai>
+						</set>
+						<set name="atributo_pregunta">
+							<srai>
+								SELECTITEM <get name="num_atributo"/> IN <get name="sabores"/>
+							</srai>
+						</set>
+						<set name="pregunta">
+							<map name="preguntas_sabor">
+								<get name="atributo_pregunta"/>
+							</map>
+						</set>
+					</li>
+
+					<li value="vitaminas">
+						<set var="num_atributos">
+							<srai>
+								COUNT <get name="vitaminas"/>
+							</srai>
+						</set>
+						<set name="num_atributo">
+							<srai>
+								RANDOM <get var="num_atributos"/>
+							</srai>
+						</set>
+						<set name="atributo_pregunta">
+							<srai>
+								SELECTITEM <get name="num_atributo"/> IN <get name="vitaminas"/>
+							</srai>
+						</set>
+						<set name="pregunta">
+							<map name="preguntas_vitaminas">
+								<get name="atributo_pregunta"/>
+							</map>
+						</set>
+					</li>
+				</condition>
+			</think>
+			<get name="pregunta"/>
+		</template>
+	</category>
+
+	<category>
+		<pattern> ELEGIR BUENA PREGUNTA </pattern>
+		<template>
+			<think>
+				<set var="buena_pregunta">1</set>
+
+				<condition var="buena_pregunta">
+					<li value="2"></li>
+					<li>
+						<set name="pregunta">
+							<srai> ELEGIR PREGUNTA </srai>
+						</set>
+
+						<!-- Iterar sobre las frutas en busca de una que no contenga las caracteristicas -->
+						<set var="item">
+							<srai> ITERATE <get name="lista_frutas"/> </srai>
+						</set>
+
+						<condition var="item">
+							<li value="end"></li>
+							<li>
+								<set var="carac_frutas">
+									<map name="frutas">
+										<get var="item"/>
+									</map>
+								</set>
+
+								<set var="numero">
+									<srai> FINDITEM <get name="atributo_pregunta"/> IN <get var="carac_frutas"/> </srai>
+								</set>
+
+								<condition var="numero">
+									<li value="0">
+										<set var="buena_pregunta">2</set>
+									</li>
+								</condition>
+
+								<set var="item">
+									<srai>NEXT</srai>
+								</set>
+								<loop/>
+							</li>
+						</condition>
+						<loop/>
+					</li>
+				</condition>
+			</think>
+			<get name="pregunta"/>
+		</template>
+	</category>
+</aiml>

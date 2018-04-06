@@ -1,0 +1,4 @@
+color
+tamano
+sabor
+vitaminas

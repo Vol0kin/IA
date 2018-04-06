@@ -1,0 +1,273 @@
+<?xml version="1.0"
+encoding="UTF-8"?>
+<aiml version="2.0">
+
+  <category>
+    <pattern> * JUGAR ^</pattern>
+    <template>Muy bien. Dime si quieres que piense o adivine la fruta</template>
+  </category>
+
+  <category>
+    <pattern>piensa [otra una] fruta</pattern>
+    <template>
+      <think>
+        <set name="fruit_list">
+          <readset>frutas</readset>
+        </set>
+
+        <set var="length">
+          <srai>
+            COUNT <get name="fruit_list"/>
+          </srai>
+        </set>
+
+        <set var="fruit_number">
+          <srai>
+            RANDOM <get var="length"/>
+          </srai>
+        </set>
+
+        <set name="fruit">
+          <srai>
+            SELECTITEM <get var="fruit_number"/> IN <get name="fruit_list"/>
+          </srai>
+        </set>
+
+        <set name="traits">
+          <map name="frutas">
+            <get name="fruit"/>
+          </map>
+        </set>
+        <set name="topic">adivinar_humano</set>
+      </think>
+      Ya he pensado la fruta. Que empiece el juego!
+    </template>
+  </category>
+
+  <topic name="adivinar_humano">
+    <!--Preguntas sobre el color de la fruta -->
+    <category>
+      <pattern>* <set>color</set></pattern>
+      <template>
+        <think>
+          <set var="existe">
+            <srai>
+              FINDITEM <star index="2"/> IN <get name="traits"/>
+            </srai>
+          </set>
+        </think>
+        <condition var="existe">
+          <li value="0">
+            No, la fruta no es de color <star index="2"/>
+          </li>
+          <li>
+            Yep, la fruta es de color <star index="2"/>
+          </li>
+        </condition>
+      </template>
+    </category>
+
+    <!-- Preguntas sobre el tamaño de la fruta -->
+    <category>
+      <pattern>* <set>tamano</set></pattern>
+      <template>
+        <think>
+          <set var="existe">
+            <srai>
+              FINDITEM <star index="2"/> IN <get name="traits"/>
+            </srai>
+          </set>
+        </think>
+        <condition var="existe">
+          <li value="0">
+            No, el tamaño de la fruta no es <star index="2"/>
+          </li>
+          <li>
+            Si, el tamaño de la fruta es <star index="2"/>
+          </li>
+        </condition>
+      </template>
+    </category>
+
+    <!-- Preguntas sobre las vitaminas -->
+    <category>
+      <pattern>* <set>vitaminas</set></pattern>
+      <template>
+        <think>
+          <set var="existe">
+            <srai>
+              FINDITEM <star index="2"/> IN <get name="traits"/>
+            </srai>
+          </set>
+        </think>
+        <condition var="existe">
+          <li value="0">
+            No, la fruta no tiene vitamina <star index="2"/>
+          </li>
+          <li>
+            Si, la fruta es rica en vitamina <star index="2"/>
+          </li>
+        </condition>
+      </template>
+    </category>
+
+    <!-- Preguntas sobre el sabor -->
+    <category>
+      <pattern>* <set>sabor</set></pattern>
+      <template>
+        <think>
+          <set var="existe">
+            <srai>
+              FINDITEM <star index="2"/> IN <get name="traits"/>
+            </srai>
+          </set>
+        </think>
+        <condition var="existe">
+          <li value="0">
+            Nope, la fruta no tiene sabor <star index="2"/>
+          </li>
+          <li>
+            Si, la fruta tiene sabor <star index="2"/>
+          </li>
+        </condition>
+      </template>
+    </category>
+
+    <!-- Indica el nombre de la fruta y si ha acertado -->
+    <category>
+      <pattern>* <set>frutas</set></pattern>
+      <template>
+        <condition name="fruit">
+          <li><value><star index="2"/></value>Has acertado! La fruta es <star index="2"/>!</li>
+          <li>Te has equivocado! La fruta no es <star index="2"/></li>
+        </condition>
+      </template>
+    </category>
+
+    <!-- Ayuda sobre el color de las frutas -->
+    <category>
+      <pattern>* <set>frutas</set> ^ <set>color</set></pattern>
+      <template>
+        <think>
+          <set var="traits_search">
+            <map name="frutas">
+              <star index="2"/>
+            </map>
+          </set>
+          <set var="is_trait">
+            <srai>
+              FINDITEM <star index="4"/> IN <get var="traits_search"/>
+            </srai>
+          </set>
+        </think>
+        <condition var="is_trait">
+          <li value="0"><star index="2"/> no es de color <star index="4"/></li>
+          <li><star index="2"/> es de color <star index="4"/></li>
+        </condition>
+      </template>
+    </category>
+
+    <category>
+      <pattern>* <set>color</set> * <set>frutas</set></pattern>
+      <template>
+        <srai>ES EL <star index="4"/> DE COLOR <star index="2"/></srai>
+      </template>
+    </category>
+
+    <!-- Ayuda sobre los tamaños de las frutas -->
+    <category>
+      <pattern>* <set>frutas</set> ^ <set>tamano</set></pattern>
+      <template>
+        <think>
+          <set var="traits_search">
+            <map name="frutas">
+              <star index="2"/>
+            </map>
+          </set>
+          <set var="is_trait">
+            <srai>
+              FINDITEM <star index="4"/> IN <get var="traits_search"/>
+            </srai>
+          </set>
+        </think>
+        <condition var="is_trait">
+          <li value="0"><star index="2"/> no es de tamaño <star index="4"/></li>
+          <li><star index="2"/> es de tamaño <star index="4"/></li>
+        </condition>
+      </template>
+    </category>
+
+    <category>
+      <pattern>* <set>tamano</set> * <set>frutas</set></pattern>
+      <template>
+        <srai>ES EL <star index="4"/> DE TAMAÑO <star index="2"/></srai>
+      </template>
+    </category>
+
+    <!-- Ayuda sobre los sabores de las frutas -->
+    <category>
+      <pattern>* <set>frutas</set> ^ <set>sabor</set></pattern>
+      <template>
+        <think>
+          <set var="traits_search">
+            <map name="frutas">
+              <star index="2"/>
+            </map>
+          </set>
+          <set var="is_trait">
+            <srai>
+              FINDITEM <star index="4"/> IN <get var="traits_search"/>
+            </srai>
+          </set>
+        </think>
+        <condition var="is_trait">
+          <li value="0"><star index="2"/> no es de sabor <star index="4"/></li>
+          <li><star index="2"/> es de sabor <star index="4"/></li>
+        </condition>
+      </template>
+    </category>
+
+    <category>
+      <pattern>* <set>sabor</set> * <set>frutas</set></pattern>
+      <template>
+        <srai>ES EL <star index="4"/> DE COLOR <star index="2"/></srai>
+      </template>
+    </category>
+
+    <!-- Ayuda sobre las vitaminas de las frutas -->
+    <category>
+      <pattern>* <set>frutas</set> ^ <set>vitaminas</set></pattern>
+      <template>
+        <think>
+          <set var="traits_search">
+            <map name="frutas">
+              <star index="2"/>
+            </map>
+          </set>
+          <set var="is_trait">
+            <srai>
+              FINDITEM <star index="4"/> IN <get var="traits_search"/>
+            </srai>
+          </set>
+        </think>
+        <condition var="is_trait">
+          <li value="0"><star index="2"/> no contiene vitamina <star index="4"/></li>
+          <li><star index="2"/> contiene vitamina <star index="4"/></li>
+        </condition>
+      </template>
+    </category>
+
+    <category>
+      <pattern>* <set>vitaminas</set> * <set>frutas</set></pattern>
+      <template>
+        <srai>ES EL <star index="4"/> DE COLOR <star index="2"/></srai>
+      </template>
+    </category>
+
+    <category>
+      <pattern>DIME LA FRUTA</pattern>
+      <template>La fruta es <get name="fruit"/>. No me esperaba esto de ti, eres un flojo.</template>
+    </category>
+
+  </topic>
+</aiml>

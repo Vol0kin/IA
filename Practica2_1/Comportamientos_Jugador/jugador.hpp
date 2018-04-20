@@ -5,18 +5,6 @@
 
 #include <list>
 
-class Node {
-  private:
-      int posX, posY;
-      int coste;
-      int padre;
-
-  public:
-      Node(int posX, posY);
-      int calcularCoste(const Node & destino);
-      int setPadre(const Node & 
-}
-
 struct estado {
   int fila;
   int columna;
@@ -32,8 +20,6 @@ class ComportamientoJugador : public Comportamiento {
       destino.fila = -1;
       destino.columna = -1;
       destino.orientacion = -1;
-      ultimaAccion = actIDLE;
-      hayPlan = false;
     }
     ComportamientoJugador(std::vector< std::vector< unsigned char> > mapaR) : Comportamiento(mapaR) {
       // Inicializar Variables de Estado
@@ -42,8 +28,6 @@ class ComportamientoJugador : public Comportamiento {
       destino.fila = -1;
       destino.columna = -1;
       destino.orientacion = -1;
-      ultimaAccion = actIDLE;
-      hayPlan = false;
     }
     ComportamientoJugador(const ComportamientoJugador & comport) : Comportamiento(comport){}
     ~ComportamientoJugador(){}
@@ -51,7 +35,6 @@ class ComportamientoJugador : public Comportamiento {
     Action think(Sensores sensores);
     int interact(Action accion, int valor);
     void VisualizaPlan(const estado &st, const list<Action> &plan);
-
     ComportamientoJugador * clone(){return new ComportamientoJugador(*this);}
 
   private:
@@ -59,12 +42,6 @@ class ComportamientoJugador : public Comportamiento {
     int fil, col, brujula;
     estado destino;
     list<Action> plan;
-
-    // Nuevas Variables de Estado
-    Action ultimaAccion;
-    bool hayPlan;
-
-
 
     bool pathFinding(const estado &origen, const estado &destino, list<Action> &plan);
     void PintaPlan(list<Action> plan);

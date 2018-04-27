@@ -193,8 +193,29 @@ bool ComportamientoJugador::esNodoAdyacenteExplorable(int posX, int posY) {
     return explorable;
 }
 
+Node ComportamientoJugador::obtenerCasillaFrente(const estado &origen) {
+    Node casillaFrente(0, 0);
+
+    switch(origen.orientacion) {
+        case 0:
+            casillaFrente = Node(origen.fila - 1, origen.columna);
+            break;
+        case 1:
+            casillaFrente = Node(origen.fila, origen.columna + 1);
+            break;
+        case 2:
+            casillaFrente = Node(origen.fila + 1, origen.columna);
+            break;
+        case 3:
+            casillaFrente = Node(origen.fila, origen.columna - 1);
+            break;
+    }
+
+    return casillaFrente;
+}
+
 // Metodo de busqueda A*
-void ComportamientoJugador::aStar(const estado &origen, const estado &destino, list<Action> &plan) {
+void ComportamientoJugador::aStar(const estado &origen, const estado &destino, list<Action> &plan, bool ignorarAldeano) {
     bool mapaExplorado[100][100];                                                       // Mapa de bits que indica cuales son las posiciones exploradas
     bool haySolucion = false;                                                           // Variable que indica si se ha encontrado una solucion (se ha alcanzado el objetivo)
     
@@ -202,11 +223,15 @@ void ComportamientoJugador::aStar(const estado &origen, const estado &destino, l
     std::list<Node*> explorados;                                                        // Lista de nodos explorados
     Node* nodoInicial = new Node(origen.fila, origen.columna);                          // Nodo inicial
     Node* nodoFinal   = new Node(destino.fila, destino.columna);                        // Nodo final (representacion simbolica)
+    Node nodoIgnorar = obtenerCasillaFrente(origen);                                    // Nodo a ignorar (inicialmente el 0,0 , si hay que ignorar alguno se determinara mas adelante)
 
     frontera.push(nodoInicial);
 
     // Se rellena el mapa de bits con false (ningun nodo se ha explorado)
     std::fill(mapaExplorado[0], mapaExplorado[0] + 100*100, false);
+
+    if (ignorarAldeano)
+        mapaExplorado[nodoIgnorar.getPosX()][nodoIgnorar.getPosY()] = true;
 
     while (!haySolucion && !frontera.empty()) {
         Node* nodoActual = frontera.top();
@@ -239,99 +264,96 @@ void ComportamientoJugador::aStar(const estado &origen, const estado &destino, l
         frontera.pop();
     }
 
-    Node* iter = explorados.front();                                                    // Puntero que permite iterar sobre la lista de nodos
-    Node* anterior;
-    bool hayGiro = false;
+    // Comprobar si hay solucion
+    if (haySolucion) {
+        Node* iter = explorados.front();                                                    // Puntero que permite iterar sobre la lista de nodos
+        Node* anterior;
+        bool hayGiro = false;
 
-    while(iter->getPadre() != 0) {
-        plan.push_front(actFORWARD);
+        while(iter->getPadre() != 0) {
+            plan.push_front(actFORWARD);
 
-        hayGiro = iter->hayGiro();
+            hayGiro = iter->hayGiro();
 
-        if (hayGiro) {
-            int tipoGiro = iter->tipoGiro();
+            if (hayGiro) {
+                int tipoGiro = iter->tipoGiro();
 
-            if (tipoGiro == 1)
-                plan.push_front(actTURN_R);
-            else
-                plan.push_front(actTURN_L);
+                if (tipoGiro == 1)
+                    plan.push_front(actTURN_R);
 
-            hayGiro = false;
-        }
+                else
+                    plan.push_front(actTURN_L);
+
+                hayGiro = false;
+            }   
         
-        anterior = iter;
-        iter = iter->getPadre();
-    }
+            anterior = iter;
+            iter = iter->getPadre();
+        }
     
-    int difX = anterior->getPosX() - nodoInicial->getPosX(),
-        difY = anterior->getPosY() - nodoInicial->getPosY();
-    estado st = origen;
+        int difX = anterior->getPosX() - nodoInicial->getPosX(),
+            difY = anterior->getPosY() - nodoInicial->getPosY();
+        estado st = origen;
 
 
-    switch(st.orientacion) {
-        case 0:
+        switch(st.orientacion) {
+            case 0:
+                if (difX == 1) {
+                    plan.push_front(actTURN_R);
+                    plan.push_front(actTURN_R);
+                    st.orientacion = 2;
+                } else if(difY == -1) {
+                    plan.push_front(actTURN_L);
+                    st.orientacion = 3;
+                } else if(difY == 1) {
+                    plan.push_front(actTURN_R);
+                    st.orientacion = 1;
+                }
 
-            if (difX == 1) {
-                plan.push_front(actTURN_R);
-                plan.push_front(actTURN_R);
-                st.orientacion = 2;
-            } else if(difY == -1) {
-                plan.push_front(actTURN_L);
-                st.orientacion = 3;
-            } else if(difY == 1) {
-                plan.push_front(actTURN_R);
-                st.orientacion = 1;
-            }
+                break;
+            case 1:
+                if (difY == -1) {
+                    plan.push_front(actTURN_R);
+                    plan.push_front(actTURN_R);
+                    st.orientacion = 3;
+                } else if(difX == -1) {
+                    plan.push_front(actTURN_L);
+                    st.orientacion = 0;
+                } else if(difX == 1) {
+                    plan.push_front(actTURN_R);
+                    st.orientacion = 2;
+    
+                }
+                break;
+            case 2:
+                if (difX == -1) {
+                    plan.push_front(actTURN_R);
+                    plan.push_front(actTURN_R);
+                    st.orientacion = 0;
+                } else if(difY == -1) {
+                    plan.push_front(actTURN_R);
+                    st.orientacion = 3;
+                } else if(difY == 1) {
+                    plan.push_front(actTURN_L);
+                    st.orientacion = 1;
+                }
 
-            break;
+                break;
+            case 3:
+                if (difY == 1) {
+                    plan.push_front(actTURN_R);
+                    plan.push_front(actTURN_R);
+                    st.orientacion = 1;
+                } else if(difX == 1) {
+                    plan.push_front(actTURN_L);
+                    st.orientacion = 2;
+                } else if(difX == -1) {
+                    plan.push_front(actTURN_R);
+                    st.orientacion = 0;
+                }
 
-        case 1:
- 
-            if (difY == -1) {
-                plan.push_front(actTURN_R);
-                plan.push_front(actTURN_R);
-                st.orientacion = 3;
-            } else if(difX == -1) {
-                plan.push_front(actTURN_L);
-                st.orientacion = 0;
-            } else if(difX == 1) {
-                plan.push_front(actTURN_R);
-                st.orientacion = 2;
-            }
-
-            break;
-
-        case 2:
-
-            if (difX == -1) {
-                plan.push_front(actTURN_R);
-                plan.push_front(actTURN_R);
-                st.orientacion = 0;
-            } else if(difY == -1) {
-                plan.push_front(actTURN_R);
-                st.orientacion = 1;
-            } else if(difY == 1) {
-                plan.push_front(actTURN_L);
-                st.orientacion = 3;
-            }
-
-            break;
-
-        case 3:
-
-            if (difY == 1) {
-                plan.push_front(actTURN_R);
-                plan.push_front(actTURN_R);
-                st.orientacion = 1;
-            } else if(difX == 1) {
-                plan.push_front(actTURN_L);
-                st.orientacion = 2;
-            } else if(difX == -1) {
-                plan.push_front(actTURN_R);
-                st.orientacion = 0;
-            }
-
-            break;
+                break;
+        }
     }
 
 
@@ -345,39 +367,23 @@ void ComportamientoJugador::aStar(const estado &origen, const estado &destino, l
     }
 }
 
-bool ComportamientoJugador::pathFinding(const estado &origen, const estado &destino, list<Action> &plan) {
+bool ComportamientoJugador::pathFinding(const estado &origen, const estado &destino, list<Action> &plan, bool ignorarAldeano) {
 	//Borro la lista
 	plan.clear();
 	
-    aStar(origen, destino, plan);
+    aStar(origen, destino, plan, ignorarAldeano);
 
 	// Descomentar para ver el plan en el mapa
-	VisualizaPlan(origen, plan);
+	//VisualizaPlan(origen, plan);
 
 	return true;
 }
 
 Action ComportamientoJugador::think(Sensores sensores) {
-  if (sensores.mensajeF != -1){
+    if (sensores.mensajeF != -1){
 		fil = sensores.mensajeF;
 		col = sensores.mensajeC;
 	}
-
-	// Actualizar el efecto de la ultima accion
-	switch (ultimaAccion){
-		case actTURN_R: brujula = (brujula+1)%4; break;
-		case actTURN_L: brujula = (brujula+3)%4; break;
-		case actFORWARD:
-			switch (brujula){
-				case 0: fil--; break;
-				case 1: col++; break;
-				case 2: fil++; break;
-				case 3: col--; break;
-			}
-			cout << "fil: " << fil << "  col: " << col << " Or: " << brujula << endl;
-	}
-
-
 
 	// Determinar si ha cambiado el destino desde la ultima planificacion
 	if (hayPlan and (sensores.destinoF != destino.fila or sensores.destinoC != destino.columna)){
@@ -395,22 +401,68 @@ Action ComportamientoJugador::think(Sensores sensores) {
 		destino.fila = sensores.destinoF;
 		destino.columna = sensores.destinoC;
 
-    		hayPlan = pathFinding(origen,destino,plan);
+        hayPlan = pathFinding(origen,destino,plan);
+        VisualizaPlan(origen, plan);
 	}
 
 
-	// Ejecutar el plan
-	Action sigAccion;
+	// Ejecutar el plan	
 	if (hayPlan and plan.size()>0){
-		sigAccion = plan.front();
-		plan.erase(plan.begin());
-	}
-	else {
-		sigAccion = actIDLE;
+        // Comprobar si hay un aldeano bloqueando el camino
+        if (sensores.superficie.at(2) == 'a' && plan.front() == actFORWARD) {
+            list<Action> planAuxiliar;                  // Plan auxiliar en caso de ser necesario cambiar el plan
+
+            estado estadoActual;
+            estadoActual.fila = fil;
+            estadoActual.columna = col;
+            estadoActual.orientacion = brujula;
+
+            Node nodoFrente = obtenerCasillaFrente(estadoActual);
+
+            // Si el nodo siguiente es el destino, hay que esperar a que se aparte el aldeano
+            if (nodoFrente.getPosX() == destino.fila && nodoFrente.getPosY() == destino.columna)
+                ultimaAccion = actIDLE;
+            else {
+                hayPlan = pathFinding(estadoActual, destino, planAuxiliar, true);
+
+                if (planAuxiliar.empty())
+                    ultimaAccion = actIDLE;
+                else if(( (int)(planAuxiliar.size() - plan.size()) > 20) && numEsperas < 10 ) {
+                    numEsperas++;
+                    ultimaAccion = actIDLE;
+                    cout << "Esperando a que se aparte el aldeano..." << endl;
+                } else {
+                    cout << "Cambiando plan de busqueda" << endl;
+                    plan = planAuxiliar;
+	                VisualizaPlan(estadoActual, plan);
+                    numEsperas = 0;
+		            ultimaAccion = plan.front();
+		            plan.erase(plan.begin());
+                }
+            }
+        } else {
+            numEsperas = 0;
+		    ultimaAccion = plan.front();
+		    plan.erase(plan.begin());
+        }
+	} else {
+		ultimaAccion = actIDLE;
 	}
 
-	ultimaAccion = sigAccion;
-	return sigAccion;
+	// Actualizar el efecto de la ultima accion
+	switch (ultimaAccion){
+		case actTURN_R: brujula = (brujula+1)%4; break;
+		case actTURN_L: brujula = (brujula+3)%4; break;
+		case actFORWARD:
+			switch (brujula){
+				case 0: fil--; break;
+				case 1: col++; break;
+				case 2: fil++; break;
+				case 3: col--; break;
+			}
+			cout << "fil: " << fil << "  col: " << col << " Or: " << brujula << endl;
+	}
+	return ultimaAccion;
 }
 
 

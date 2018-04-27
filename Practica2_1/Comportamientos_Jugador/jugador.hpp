@@ -56,6 +56,7 @@ class ComportamientoJugador : public Comportamiento {
       destino.orientacion = -1;
       ultimaAccion = actIDLE;
       hayPlan = false;
+      numEsperas = 0;
     }
     ComportamientoJugador(std::vector< std::vector< unsigned char> > mapaR) : Comportamiento(mapaR) {
       // Inicializar Variables de Estado
@@ -66,6 +67,7 @@ class ComportamientoJugador : public Comportamiento {
       destino.orientacion = -1;
       ultimaAccion = actIDLE;
       hayPlan = false;
+      numEsperas = 0;
     }
     ComportamientoJugador(const ComportamientoJugador & comport) : Comportamiento(comport){}
     ~ComportamientoJugador(){}
@@ -86,9 +88,14 @@ class ComportamientoJugador : public Comportamiento {
     Action ultimaAccion;
     bool hayPlan;
 
+    // Numero de esperas a que el aldeano se aparte (numEsperas <= 10)
+    unsigned numEsperas;
+
+    Node obtenerCasillaFrente(const estado &origen);
+    
     bool esNodoAdyacenteExplorable(int posX, int posY);
-    void aStar(const estado &origen, const estado &destino, list<Action> &plan);
-    bool pathFinding(const estado &origen, const estado &destino, list<Action> &plan);
+    void aStar(const estado &origen, const estado &destino, list<Action> &plan, bool ignorarAldeano);
+    bool pathFinding(const estado &origen, const estado &destino, list<Action> &plan, bool ignorarAldeano = false);
     void PintaPlan(list<Action> plan);
 };
 

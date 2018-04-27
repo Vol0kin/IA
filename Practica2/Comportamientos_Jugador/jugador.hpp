@@ -8,14 +8,22 @@
 class Node {
   private:
       int posX, posY;
+      int numGiros;
+      int distOrig, distFin;
       int coste;
-      int padre;
+      const Node* padre;
 
   public:
-      Node(int posX, posY);
-      int calcularCoste(const Node & destino);
-      int setPadre(const Node & 
-}
+      Node(int x, int y);
+      Node(int x, int y, const Node& pad);
+      Node(const Node& otro);
+      int calcularCoste();
+      bool operator<(const Node& otro) const;
+      int getPosX() const;
+      int getPosY() const;
+      void distanciaManhattan(const Node& destino);
+      bool hayGiro(const Node& nodo);
+};
 
 struct estado {
   int fila;
@@ -65,7 +73,7 @@ class ComportamientoJugador : public Comportamiento {
     bool hayPlan;
 
 
-
+    void aStar(const estado &origen, const estado &destino, list<Action> &plan);
     bool pathFinding(const estado &origen, const estado &destino, list<Action> &plan);
     void PintaPlan(list<Action> plan);
 };

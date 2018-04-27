@@ -31,6 +31,12 @@ iostream
 -
 cmath
 -
+queue
+-
+stack
+-
+algorithm
+-
 
 /home/vladislav/Universidad/IA/Practica2/Comportamientos_Jugador/jugador.hpp
 comportamientos/comportamiento.hpp

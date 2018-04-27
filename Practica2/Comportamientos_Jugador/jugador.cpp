@@ -4,6 +4,78 @@
 
 #include <iostream>
 #include <cmath>
+#include <queue>
+#include <stack>
+#include <algorithm>
+
+//////////////////////////////////////////////////////////////////////////////////////
+// Metodos de Node
+//////////////////////////////////////////////////////////////////////////////////////
+
+Node::Node(int x, int y) {
+    posX = x;
+    posY = y;
+    numGiros = distOrig = distFin = coste = 0;
+    padre = 0;
+}
+
+Node::Node(int x, int y, const Node& pad) {
+    posX = x;
+    posY = y;
+    padre = &pad;
+
+    numGiros = pad.numGiros;
+
+    if (hayGiro(*(padre->padre)))               // Modificar esta linea en caso de error
+        numGiros++;
+
+    distOrig = pad.distOrig + 1; 
+}
+
+Node::Node(const Node& otro) {
+    posX = otro.posX;
+    posY = otro.posY;
+    numGiros = otro.numGiros;
+    padre = otro.padre;
+    coste = otro.coste;
+    distOrig = otro.distOrig;
+    distFin = otro.distFin;
+}
+
+int Node::getPosX() const {
+    return posX;
+}
+
+int Node::getPosY() const {
+    return posY;
+}
+
+int Node::calcularCoste() {
+    coste = distOrig + distFin + numGiros;
+
+    return coste;
+}
+
+void Node::distanciaManhattan(const Node& destino) {
+    
+}
+
+bool Node::operator<(const Node& otro) const {
+    return coste < otro.coste;
+}
+
+bool Node::hayGiro(const Node& nodo) {
+    bool hayGiro = false;
+
+    if (posX != nodo.posX && posY != nodo.posY)
+        hayGiro = true;
+
+    return hayGiro;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Metodos de ComportamientoJugador
+///////////////////////////////////////////////////////////////////////////////
 
 void ComportamientoJugador::PintaPlan(list<Action> plan) {
 	auto it = plan.begin();
@@ -23,6 +95,29 @@ void ComportamientoJugador::PintaPlan(list<Action> plan) {
 		it++;
 	}
 	cout << endl;
+}
+
+// Metodo de busqueda A*
+void ComportamientoJugador::aStar(const estado &origen, const estado &destino, list<Action> &plan) {
+    bool mapaExplorado[100][100];                               // Mapa de bits que indica cuales son las posiciones exploradas
+    bool haySolucion = false;                                   // Variable que indica si se ha encontrado una solucion (se ha alcanzado el objetivo)
+    std::priority_queue<Node> frontera;                         // Frontera de nodos (nodos abiertos)
+    Node nodoInicial(origen.fila, origen.columna);              // Nodo inicial
+
+    frontera.push(nodoInicial);
+
+    // Se rellena el mapa de bits con false (ningun nodo se ha explorado)
+    std::fill(mapaExplorado[0], mapaExplorado[0] + 100*100, false);
+
+    while (!haySolucion && !frontera.empty()) {
+        Node nodoActual = frontera.top();
+        int posX = nodoActual.getPosX(), posY = nodoActual.getPosY();
+
+        // Marcar como explorado el nodo actual del mapa
+        mapaExplorado[posX][posY] = true;
+
+        frontera.pop();
+    }
 }
 
 bool ComportamientoJugador::pathFinding(const estado &origen, const estado &destino, list<Action> &plan) {

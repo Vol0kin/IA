@@ -56,7 +56,7 @@ class ComportamientoJugador : public Comportamiento {
       destino.columna = -1;
       destino.orientacion = -1;
       ultimaAccion = actIDLE;
-      hayPlan = false;
+      hayPlan = hayPlanPK = false;
       numEsperas = 0;
       radar.resize(200);
       fill(radar.begin(), radar.end(), vector<unsigned char>(200, '?'));
@@ -69,7 +69,7 @@ class ComportamientoJugador : public Comportamiento {
       destino.columna = -1;
       destino.orientacion = -1;
       ultimaAccion = actIDLE;
-      hayPlan = false;
+      hayPlan = hayPlanPK = false;
       numEsperas = 0;
       radar.resize(200);
       fill(radar.begin(), radar.end(), vector<unsigned char>(200, '?'));
@@ -98,16 +98,25 @@ class ComportamientoJugador : public Comportamiento {
 
     // Radar que permite ir guardando el mapa obtenido relativo a la posicion del agente
     vector< vector<unsigned char> > radar;
+    bool hayPlanPK;
+    list<Action> planPK;
+    estado localizacionPK;
 
     Node obtenerCasillaFrente(const estado &origen);
     
     bool esNodoAdyacenteExplorable(int posX, int posY, const vector< vector <unsigned char> >& mapa);
     void rellenarMapa(vector< vector <unsigned char> >& mapa, Sensores sensores);
     bool esCasillaFrenteObstaculo(Sensores sensores);
+    bool esCasillaFrenteAldeano(Sensores sensores);
+    bool detectadoPuntoReferencia(Sensores sensores);
     Action decidirSiguienteAccion(Sensores sensores);
     void aStar(const estado &origen, const estado &destino, list<Action> &plan, const vector< vector <unsigned char> >& mapa, bool ignorarAldeano);
     bool pathFinding(const estado &origen, const estado &destino, list<Action> &plan, const vector< vector <unsigned char> >& mapa, bool ignorarAldeano = false);
     void PintaPlan(list<Action> plan);
+
+    void initObjetivosReactivos(estado objetivos[]);
+    void identificarPK();
+    void copiarMapas(int auxFil, int auxCol);
 };
 
 #endif

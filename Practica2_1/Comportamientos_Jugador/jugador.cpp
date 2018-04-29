@@ -5,7 +5,6 @@
 #include <iostream>
 #include <cmath>
 #include <queue>
-#include <stack>
 #include <algorithm>
 #include <cstdlib>
 #include <vector>
@@ -183,12 +182,14 @@ void ComportamientoJugador::PintaPlan(list<Action> plan) {
 }
 
 
-bool ComportamientoJugador::esNodoAdyacenteExplorable(int posX, int posY) {
+bool ComportamientoJugador::esNodoAdyacenteExplorable(int posX, int posY, const vector< vector <unsigned char> >& mapa) {
     bool explorable = false;
-    
-    if (mapaResultado[posX][posY] == 'S' || mapaResultado[posX][posY] == 'T'
-        || mapaResultado[posX][posY] == 'K')
-        explorable = true;
+
+    if (posX >= 0 && posX < mapa.size() && posY >= 0 && posY < mapa.size()) {
+        if (mapaResultado[posX][posY] == 'S' || mapaResultado[posX][posY] == 'T'
+            || mapaResultado[posX][posY] == 'K')
+            explorable = true;
+    }
 
     return explorable;
 }
@@ -215,11 +216,12 @@ Node ComportamientoJugador::obtenerCasillaFrente(const estado &origen) {
 }
 
 // Metodo de busqueda A*
-void ComportamientoJugador::aStar(const estado &origen, const estado &destino, list<Action> &plan, bool ignorarAldeano) {
-    bool mapaExplorado[100][100];                                                       // Mapa de bits que indica cuales son las posiciones exploradas
+void ComportamientoJugador::aStar(const estado &origen, const estado &destino, list<Action> &plan, const vector< vector <unsigned char> >& mapa, bool ignorarAldeano) {
+    vector< vector <bool> > mapaExplorado;                                              // Mapa de bits que indica cuales son las posiciones exploradas
+    mapaExplorado.resize(200);
     bool haySolucion = false;                                                           // Variable que indica si se ha encontrado una solucion (se ha alcanzado el objetivo)
     
-    std::priority_queue<Node*, std::vector<Node*>, functor> frontera;                   // Frontera de nodos (nodos abiertos)
+    priority_queue<Node*, vector<Node*>, functor> frontera;                             // Frontera de nodos (nodos abiertos)
     std::list<Node*> explorados;                                                        // Lista de nodos explorados
     Node* nodoInicial = new Node(origen.fila, origen.columna);                          // Nodo inicial
     Node* nodoFinal   = new Node(destino.fila, destino.columna);                        // Nodo final (representacion simbolica)
@@ -228,7 +230,7 @@ void ComportamientoJugador::aStar(const estado &origen, const estado &destino, l
     frontera.push(nodoInicial);
 
     // Se rellena el mapa de bits con false (ningun nodo se ha explorado)
-    std::fill(mapaExplorado[0], mapaExplorado[0] + 100*100, false);
+    fill(mapaExplorado.begin(), mapaExplorado.end(), vector<bool>(200, false));
 
     if (ignorarAldeano)
         mapaExplorado[nodoIgnorar.getPosX()][nodoIgnorar.getPosY()] = true;
@@ -244,16 +246,16 @@ void ComportamientoJugador::aStar(const estado &origen, const estado &destino, l
         if (*nodoActual == *nodoFinal) { 
             haySolucion = true;
         } else {
-            if (esNodoAdyacenteExplorable(posX - 1, posY) && mapaExplorado[posX - 1][posY] == false)
+            if (esNodoAdyacenteExplorable(posX - 1, posY, mapa) && mapaExplorado[posX - 1][posY] == false)
                 frontera.push(new Node(posX - 1, posY, nodoActual, nodoFinal));
 
-            if (esNodoAdyacenteExplorable(posX + 1, posY) &&  mapaExplorado[posX + 1][posY] == false)
+            if (esNodoAdyacenteExplorable(posX + 1, posY, mapa) &&  mapaExplorado[posX + 1][posY] == false)
                 frontera.push(new Node(posX + 1, posY, nodoActual, nodoFinal));
 
-            if (esNodoAdyacenteExplorable(posX, posY - 1) && mapaExplorado[posX][posY - 1] == false)
+            if (esNodoAdyacenteExplorable(posX, posY - 1, mapa) && mapaExplorado[posX][posY - 1] == false)
                 frontera.push(new Node(posX, posY - 1, nodoActual, nodoFinal));
 
-            if (esNodoAdyacenteExplorable(posX, posY + 1) && mapaExplorado[posX][posY + 1] == false)
+            if (esNodoAdyacenteExplorable(posX, posY + 1, mapa) && mapaExplorado[posX][posY + 1] == false)
                 frontera.push(new Node(posX, posY + 1, nodoActual, nodoFinal));
         }
 
@@ -367,11 +369,11 @@ void ComportamientoJugador::aStar(const estado &origen, const estado &destino, l
     }
 }
 
-bool ComportamientoJugador::pathFinding(const estado &origen, const estado &destino, list<Action> &plan, bool ignorarAldeano) {
+bool ComportamientoJugador::pathFinding(const estado &origen, const estado &destino, list<Action> &plan, const vector< vector <unsigned char> >& mapa, bool ignorarAldeano) {
 	//Borro la lista
 	plan.clear();
 	
-    aStar(origen, destino, plan, ignorarAldeano);
+    aStar(origen, destino, plan, mapa, ignorarAldeano);
 
 	// Descomentar para ver el plan en el mapa
 	//VisualizaPlan(origen, plan);
@@ -379,75 +381,176 @@ bool ComportamientoJugador::pathFinding(const estado &origen, const estado &dest
 	return true;
 }
 
+bool ComportamientoJugador::esCasillaFrenteObstaculo(Sensores sensores) {
+    bool evitar = false;
+    unsigned char elementoFrente = sensores.terreno[2];
+
+    if (elementoFrente == 'B' || elementoFrente == 'A' || 
+        elementoFrente == 'P' || elementoFrente == 'M' ||
+        elementoFrente == 'D')
+        evitar = true;
+
+    return evitar;
+}
+
+// Permite aniadir a la informacion del mapa que se posee la superficie captada por los sensores
+void ComportamientoJugador::rellenarMapa(vector< vector <unsigned char> >& mapa, Sensores sensores) {
+    int posicionesCentralesSensores[4] = {0, 2, 6, 12};
+    int filaReferencia = fil, columnaReferencia = col, indice;
+
+    for (int i = 0; i < 4; i++) {
+        switch(brujula) {
+            case 0:
+                filaReferencia = fil - i;
+                break;
+            case 1:
+                columnaReferencia = col + i;
+                break;
+            case 2:
+                filaReferencia = fil + i;
+                break;
+            case 3:
+                columnaReferencia = col - i;
+                break;
+        }
+
+        indice = posicionesCentralesSensores[i];
+        mapa[filaReferencia][columnaReferencia] = sensores.terreno[indice];
+
+        for (int j = 1; j <= i; j++) {
+            switch(brujula) {
+                case 0:
+                    mapa[filaReferencia][columnaReferencia - j] = sensores.terreno[indice - j];
+                    mapa[filaReferencia][columnaReferencia + j] = sensores.terreno[indice + j];
+                    break;
+                case 1:
+                    mapa[filaReferencia - j][columnaReferencia] = sensores.terreno[indice - j];
+                    mapa[filaReferencia + j][columnaReferencia] = sensores.terreno[indice + j];
+                    break;
+                case 2:
+                    mapa[filaReferencia][columnaReferencia + j] = sensores.terreno[indice - j];
+                    mapa[filaReferencia][columnaReferencia - j] = sensores.terreno[indice + j];
+                    break;
+                case 3:
+                    mapa[filaReferencia + j][columnaReferencia] = sensores.terreno[indice - j];
+                    mapa[filaReferencia - j][columnaReferencia] = sensores.terreno[indice + j];
+                    break;
+            }
+        }
+
+        cout << endl;
+    }
+}
+
+// Determina cual es la siguiente accion que tiene que realizar el comportamiento reactivo
+// Marca objetivos en el mapa a los que el agente intenta llegar, reconociendo su entorno
+// a la vez que intenta alcanzarlos. el objetivo es llegar a un punto de referencia K
+Action ComportamientoJugador::decidirSiguienteAccion(Sensores sensores) {
+    static bool mapaExplorado[200][200];
+    static list<Action> accionesHastaPK;
+    static int numGirosDerecha = 0, numFORWARD = 3;
+    static bool detectadoPK = false;
+    static bool caminoHastaPK = false;
+    static Action sigGiro = actTURN_R;
+    Action accion;
+
+    if (accionesHastaPK.empty()) {
+        
+    }
+
+    return accion;
+}
+
 Action ComportamientoJugador::think(Sensores sensores) {
+    bool posicionConocida;
+
+    // Se comprueba si se conoce la posicion actual
+    if (mapaResultado[0][0] == '?' && sensores.terreno[0] != 'K')
+        posicionConocida = false;
+    else
+        posicionConocida = true;
+
     if (sensores.mensajeF != -1){
 		fil = sensores.mensajeF;
 		col = sensores.mensajeC;
 	}
 
-	// Determinar si ha cambiado el destino desde la ultima planificacion
-	if (hayPlan and (sensores.destinoF != destino.fila or sensores.destinoC != destino.columna)){
-		cout << "El destino ha cambiado\n";
-		hayPlan = false;
-	}
+    if (posicionConocida) {
+    	// Determinar si ha cambiado el destino desde la ultima planificacion
+    	if (hayPlan and (sensores.destinoF != destino.fila or sensores.destinoC != destino.columna)){
+    		cout << "El destino ha cambiado\n";
+	    	hayPlan = false;
+    	}
 
-	// Determinar si tengo que construir un plan
-	if (!hayPlan){
-		estado origen;
-		origen.fila = fil;
-		origen.columna = col;
-		origen.orientacion = brujula;
+    	// Determinar si tengo que construir un plan
+    	if (!hayPlan){
+    		estado origen;
+		    origen.fila = fil;
+	    	origen.columna = col;
+    		origen.orientacion = brujula;
 
-		destino.fila = sensores.destinoF;
-		destino.columna = sensores.destinoC;
+	    	destino.fila = sensores.destinoF;
+    		destino.columna = sensores.destinoC;
 
-        hayPlan = pathFinding(origen,destino,plan);
-        VisualizaPlan(origen, plan);
-	}
+            hayPlan = pathFinding(origen,destino,plan, mapaResultado);
+            VisualizaPlan(origen, plan);
+    	}
 
 
-	// Ejecutar el plan	
-	if (hayPlan and plan.size()>0){
-        // Comprobar si hay un aldeano bloqueando el camino
-        if (sensores.superficie.at(2) == 'a' && plan.front() == actFORWARD) {
-            list<Action> planAuxiliar;                  // Plan auxiliar en caso de ser necesario cambiar el plan
+    	// Ejecutar el plan	
+    	if (hayPlan and plan.size()>0){
+            // Comprobar si hay un aldeano bloqueando el camino
+            if (sensores.superficie.at(2) == 'a' && plan.front() == actFORWARD) {
+                list<Action> planAuxiliar;                  // Plan auxiliar en caso de ser necesario cambiar el plan
 
-            estado estadoActual;
-            estadoActual.fila = fil;
-            estadoActual.columna = col;
-            estadoActual.orientacion = brujula;
+                estado estadoActual;
+                estadoActual.fila = fil;
+                estadoActual.columna = col;
+                estadoActual.orientacion = brujula;
 
-            Node nodoFrente = obtenerCasillaFrente(estadoActual);
+                Node nodoFrente = obtenerCasillaFrente(estadoActual);
 
-            // Si el nodo siguiente es el destino, hay que esperar a que se aparte el aldeano
-            if (nodoFrente.getPosX() == destino.fila && nodoFrente.getPosY() == destino.columna)
-                ultimaAccion = actIDLE;
-            else {
-                hayPlan = pathFinding(estadoActual, destino, planAuxiliar, true);
-
-                if (planAuxiliar.empty())
+                // Si el nodo siguiente es el destino, hay que esperar a que se aparte el aldeano
+                if (nodoFrente.getPosX() == destino.fila && nodoFrente.getPosY() == destino.columna)
                     ultimaAccion = actIDLE;
-                else if(( (int)(planAuxiliar.size() - plan.size()) > 20) && numEsperas < 10 ) {
-                    numEsperas++;
-                    ultimaAccion = actIDLE;
-                    cout << "Esperando a que se aparte el aldeano..." << endl;
-                } else {
-                    cout << "Cambiando plan de busqueda" << endl;
-                    plan = planAuxiliar;
-	                VisualizaPlan(estadoActual, plan);
-                    numEsperas = 0;
-		            ultimaAccion = plan.front();
-		            plan.erase(plan.begin());
+                else {
+                    hayPlan = pathFinding(estadoActual, destino, planAuxiliar, mapaResultado, true);
+
+                    if (planAuxiliar.empty())
+                        ultimaAccion = actIDLE;
+                    else if(( (int)(planAuxiliar.size() - plan.size()) > 20) && numEsperas < 10 ) {
+                        numEsperas++;
+                        ultimaAccion = actIDLE;
+                        cout << "Esperando a que se aparte el aldeano..." << endl;
+                    } else {
+                        cout << "Cambiando plan de busqueda" << endl;
+                        plan = planAuxiliar;
+	                    VisualizaPlan(estadoActual, plan);
+                        numEsperas = 0;
+		                ultimaAccion = plan.front();
+		                plan.erase(plan.begin());
+                    }
                 }
+            } else {
+                numEsperas = 0;
+    		    ultimaAccion = plan.front();
+		        plan.erase(plan.begin());
             }
-        } else {
-            numEsperas = 0;
-		    ultimaAccion = plan.front();
-		    plan.erase(plan.begin());
-        }
-	} else {
-		ultimaAccion = actIDLE;
-	}
+    	} else 
+	    	ultimaAccion = actIDLE;
+    } else {
+        cout << "Voy a ir de frente" << endl;
+        ultimaAccion = actFORWARD;
+        rellenarMapa(radar, sensores);
+
+        for (int i = fil - 10; i < fil + 10; i++) {
+            cout << "Fila " << i << ": ";
+            for (int j = col - 10; j < col + 10; j++)
+                cout << radar[i][j] << ' ';
+            cout << endl;
+            }
+
+    }
 
 	// Actualizar el efecto de la ultima accion
 	switch (ultimaAccion){
@@ -462,6 +565,7 @@ Action ComportamientoJugador::think(Sensores sensores) {
 			}
 			cout << "fil: " << fil << "  col: " << col << " Or: " << brujula << endl;
 	}
+
 	return ultimaAccion;
 }
 

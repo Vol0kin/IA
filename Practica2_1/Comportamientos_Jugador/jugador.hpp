@@ -4,6 +4,7 @@
 #include "comportamientos/comportamiento.hpp"
 
 #include <list>
+#include <algorithm>
 
 struct estado {
   int fila;
@@ -57,6 +58,8 @@ class ComportamientoJugador : public Comportamiento {
       ultimaAccion = actIDLE;
       hayPlan = false;
       numEsperas = 0;
+      radar.resize(200);
+      fill(radar.begin(), radar.end(), vector<unsigned char>(200, '?'));
     }
     ComportamientoJugador(std::vector< std::vector< unsigned char> > mapaR) : Comportamiento(mapaR) {
       // Inicializar Variables de Estado
@@ -68,6 +71,8 @@ class ComportamientoJugador : public Comportamiento {
       ultimaAccion = actIDLE;
       hayPlan = false;
       numEsperas = 0;
+      radar.resize(200);
+      fill(radar.begin(), radar.end(), vector<unsigned char>(200, '?'));
     }
     ComportamientoJugador(const ComportamientoJugador & comport) : Comportamiento(comport){}
     ~ComportamientoJugador(){}
@@ -91,11 +96,17 @@ class ComportamientoJugador : public Comportamiento {
     // Numero de esperas a que el aldeano se aparte (numEsperas <= 10)
     unsigned numEsperas;
 
+    // Radar que permite ir guardando el mapa obtenido relativo a la posicion del agente
+    vector< vector<unsigned char> > radar;
+
     Node obtenerCasillaFrente(const estado &origen);
     
-    bool esNodoAdyacenteExplorable(int posX, int posY);
-    void aStar(const estado &origen, const estado &destino, list<Action> &plan, bool ignorarAldeano);
-    bool pathFinding(const estado &origen, const estado &destino, list<Action> &plan, bool ignorarAldeano = false);
+    bool esNodoAdyacenteExplorable(int posX, int posY, const vector< vector <unsigned char> >& mapa);
+    void rellenarMapa(vector< vector <unsigned char> >& mapa, Sensores sensores);
+    bool esCasillaFrenteObstaculo(Sensores sensores);
+    Action decidirSiguienteAccion(Sensores sensores);
+    void aStar(const estado &origen, const estado &destino, list<Action> &plan, const vector< vector <unsigned char> >& mapa, bool ignorarAldeano);
+    bool pathFinding(const estado &origen, const estado &destino, list<Action> &plan, const vector< vector <unsigned char> >& mapa, bool ignorarAldeano = false);
     void PintaPlan(list<Action> plan);
 };
 

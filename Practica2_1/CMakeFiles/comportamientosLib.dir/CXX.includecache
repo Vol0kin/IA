@@ -33,8 +33,6 @@ cmath
 -
 queue
 -
-stack
--
 algorithm
 -
 cstdlib
@@ -46,6 +44,8 @@ vector
 comportamientos/comportamiento.hpp
 /home/vladislav/Universidad/IA/Practica2_1/Comportamientos_Jugador/comportamientos/comportamiento.hpp
 list
+-
+algorithm
 -
 
 /home/vladislav/Universidad/IA/Practica2_1/src/comportamientos/comportamiento.cpp

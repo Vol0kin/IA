@@ -11,6 +11,8 @@
 #define MANUPCBOT_H_
 
 class VolokinBot:Bot {
+private:
+	Move movimiento;
 public:
 	VolokinBot();
 	~VolokinBot();
@@ -19,6 +21,8 @@ public:
 	void initialize();
 	string getName();
 	Move nextMove(const vector<Move> &adversary, const GameState &state);
+	int podaAlfaBeta(const GameState& estado, int alfa, int beta, int k, const Player& jugador);
+	int heuristica(GameState estado, Player max);
 };
 
 #endif /* MANUPCBOT_H_ */

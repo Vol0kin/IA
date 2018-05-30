@@ -13,6 +13,7 @@
 class VolokinBot:Bot {
 private:
 	Move movimiento;
+	int nodosExplorados;
 public:
 	VolokinBot();
 	~VolokinBot();

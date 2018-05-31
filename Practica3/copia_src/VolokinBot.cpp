@@ -65,7 +65,7 @@ Move VolokinBot::nextMove(const vector<Move> &adversary, const GameState &state)
 }
 
 int VolokinBot::heuristica(GameState estado, Player jugador) {
-	int semillasJug[2], diffSemillas, diffHuecos = 0, diffSemSeg = 0, maxPerJug = 0, maxPerCont = 0, roboJug = 0, roboContr = 0;
+	int semillasJug[2], diffSemillas, diffHuecos = 0, diffSemSeg = 0, maxPerJug = 0, maxPerCont = 0;
 	Player contrario = (Player) (1-jugador);
 
 	semillasJug[0] = estado.getScore( (Player) 0);
@@ -76,15 +76,8 @@ int VolokinBot::heuristica(GameState estado, Player jugador) {
 
 	for (int i = 1; i <= 6; i++) {
 		if (estado.getSeedsAt(jugador, (Position) i) <= i) {
-			if (estado.getSeedsAt(jugador, (Position) i) == 0) {
+			if (estado.getSeedsAt(jugador, (Position) i) == 0)
 				diffHuecos++;
-				if (estado.getSeedsAt(contrario, (Position) (7-i)) != 0){
-					for (int j = i + 1; j <= 6; j++) {
-						if (estado.getSeedsAt(jugador, (Position) j) == j - i)
-							roboJug = max(roboJug, (int)estado.getSeedsAt(contrario, (Position) (7-i)));
-					}
-				}					
-			}
 			diffSemSeg += estado.getSeedsAt(jugador, (Position) i);
 		} else {
 			diffSemSeg += i;
@@ -92,15 +85,8 @@ int VolokinBot::heuristica(GameState estado, Player jugador) {
 		}
 
 		if (estado.getSeedsAt(contrario, (Position) i) <= i) {
-			if (estado.getSeedsAt( contrario, (Position) i) == 0) {
+			if (estado.getSeedsAt( contrario, (Position) i) == 0)
 				diffHuecos--;
-				if (estado.getSeedsAt(jugador, (Position) i) != 0){
-					for (int j = i + 1; j <= 6; j++) {
-						if (estado.getSeedsAt(contrario, (Position) j) == j - i)
-							roboContr = max(roboContr, (int)estado.getSeedsAt(jugador, (Position) (7-i)));
-					}
-				}
-			}			
 			diffSemSeg -= estado.getSeedsAt(contrario, (Position) i);
 		} else {
 			diffSemSeg -= i;
@@ -108,7 +94,7 @@ int VolokinBot::heuristica(GameState estado, Player jugador) {
 		}
 	}
 	
-	diffSemillas += diffHuecos + 3 * diffSemSeg + 2 * (maxPerCont - maxPerJug) + 2 * (roboJug - roboContr);
+	diffSemillas += diffHuecos + diffSemSeg + (maxPerCont - maxPerJug);
 
 	return diffSemillas;
 }

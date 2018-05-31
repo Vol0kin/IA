@@ -50,43 +50,22 @@ Move VolokinBot::nextMove(const vector<Move> &adversary, const GameState &state)
 }
 
 int VolokinBot::heuristica(GameState estado, Player max) {
-	int semillasJ1, semillasJ2, diffSemillas;
-	
-	semillasJ1 = estado.getScore( (Player) 0);
-	semillasJ2 = estado.getScore( (Player) 1);
-	
-	if (max == 0) {
-		diffSemillas = semillasJ1 - semillasJ2;
+	int semillasJug[2], diffSemillas;
+	Player contrario = (Player) (1-max);
 
-		for (int i = 1; i <= 6; i++) {
-			if (estado.getSeedsAt( (Player) 0, (Position) i) == i)
-				diffSemillas++;
-		}
+	semillasJug[0] = estado.getScore( (Player) 0);
+	semillasJug[1] = estado.getScore( (Player) 1);
 
-		for (int i = 1; i <= 6; i++) {
-			if (estado.getSeedsAt( (Player) 0, (Position) i) == 0 && estado.getSeedsAt( (Player) 1, (Position) (7-i)) != 0) {
-				for (int j = i + 1; j <= 6; j++) {
-					if (estado.getSeedsAt( (Player) 0, (Position) j) == j-i) {
-						diffSemillas += estado.getSeedsAt( (Player) 1, (Position) (7-i));
-					}
-				}
-			}
-		}
-	}
-	else {
-		diffSemillas = semillasJ2 - semillasJ1;
 
-		for (int i = 1; i <= 6; i++) {
-			if (estado.getSeedsAt( (Player) 1, (Position) i) == i)
-				diffSemillas++;
-		}
+	diffSemillas = semillasJug[max] - semillasJug[contrario];
 
-		for (int i = 1; i <= 6; i++) {
-			if (estado.getSeedsAt( (Player) 1, (Position) i) == 0 && estado.getSeedsAt( (Player) 0, (Position) (7-i)) != 0) {
-				for (int j = i + 1; j <= 6; j++) {
-					if (estado.getSeedsAt( (Player) 1, (Position) j) == j-i) {
-						diffSemillas += estado.getSeedsAt( (Player) 0, (Position) (7-i));
-					}
+	for (int i = 1; i <= 6; i++) {
+		if (estado.getSeedsAt( max, (Position) i) == i)
+			diffSemillas++;
+		else if (estado.getSeedsAt( max, (Position) i) == 0 && estado.getSeedsAt( contrario, (Position) (7-i)) != 0) {
+			for (int j = i + 1; j <= 6; j++) {
+				if (estado.getSeedsAt( max, (Position) j) == j-i) {
+					diffSemillas +=  estado.getSeedsAt( contrario, (Position) (7-i));
 				}
 			}
 		}
@@ -117,7 +96,6 @@ int VolokinBot::podaAlfaBeta(const GameState& estado, int alfa, int beta, int k,
 			if (k == 0) {
 				if (valor > alfa) {
 					movimiento = mov;
-					cerr << movimiento << endl;
 				}
 			}
 

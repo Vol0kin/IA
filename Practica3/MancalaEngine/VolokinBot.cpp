@@ -81,7 +81,7 @@ int VolokinBot::heuristica(GameState estado, Player jugador) {
 				if (estado.getSeedsAt(contrario, (Position) (7-i)) != 0){
 					for (int j = i + 1; j <= 6; j++) {
 						if (estado.getSeedsAt(jugador, (Position) j) == j - i)
-							roboJug = max(roboJug, (int)estado.getSeedsAt(contrario, (Position) (7-i)));
+							roboJug = max(roboJug, estado.getSeedsAt(contrario, (Position) (7-i))+1);
 					}
 				}					
 			}
@@ -97,7 +97,7 @@ int VolokinBot::heuristica(GameState estado, Player jugador) {
 				if (estado.getSeedsAt(jugador, (Position) i) != 0){
 					for (int j = i + 1; j <= 6; j++) {
 						if (estado.getSeedsAt(contrario, (Position) j) == j - i)
-							roboContr = max(roboContr, (int)estado.getSeedsAt(jugador, (Position) (7-i)));
+							roboContr = max(roboContr, estado.getSeedsAt(jugador, (Position) i)+1);
 					}
 				}
 			}			

@@ -14,22 +14,16 @@
 using namespace std;
 
 VolokinBot::VolokinBot() {
-	// Inicializar las variables necesarias para ejecutar la partida
 	movimiento = M_NONE;
 	lim = 0;
-
 }
 
-VolokinBot::~VolokinBot() {
-	// Liberar los recursos reservados (memoria, ficheros, etc.)
-}
+VolokinBot::~VolokinBot() { }
 
-void VolokinBot::initialize() {
-	// Inicializar el bot antes de jugar una partida
-}
+void VolokinBot::initialize() { }
 
 string VolokinBot::getName() {
-	return "VolokinBot"; // Sustituir por el nombre del bot
+	return "VolokinBot";
 }
 
 Move VolokinBot::nextMove(const vector<Move> &adversary, const GameState &state) {
@@ -42,8 +36,8 @@ Move VolokinBot::nextMove(const vector<Move> &adversary, const GameState &state)
 		beta = INT_MAX,
 		k = 0;
 
-
 	Player jugador = state.getCurrentPlayer();
+
 	if (jugador == 1) {
 		if (incrementar) {
 			lim += i;
@@ -53,8 +47,7 @@ Move VolokinBot::nextMove(const vector<Move> &adversary, const GameState &state)
 	}
 
 	nodosExplorados = 0;
-	int poda = podaAlfaBeta(state, alfa, beta, 0, state.getCurrentPlayer());
-	cerr << nodosExplorados << endl;
+	int poda = podaAlfaBeta(state, alfa, beta, 0, jugador);
 
 	if (nodosExplorados < threshhold) {
 		incrementar = true;
@@ -113,16 +106,11 @@ int VolokinBot::heuristica(GameState estado, Player jugador) {
 	return diffSemillas;
 }
 
-/*
-	max permite conocer en que lado esta el jugador actual
-*/
 
 int VolokinBot::podaAlfaBeta(const GameState& estado, int alfa, int beta, int k, const Player& jugador) {
 	int valor;
 	nodosExplorados++;
 
-// probar a variar la profundidad entre 12 y 14
-	// anteriormente se usaba 13
 	if (estado.isFinalState() || k == (11 + lim))
 		return heuristica(estado, jugador);
 	
